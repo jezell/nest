@@ -15,7 +15,7 @@ jobs:
         with:
           path: ''
           fetch-depth: 0 # Checkout everything to get access to the tags
-          repository: 'join-the-flock/nest'
+          repository: ${{ github.repository }}
           ref: ${{github.event.pull_request.head.ref}}
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -24,7 +24,7 @@ jobs:
         with:
           path: 'flock'
           fetch-depth: 0 # Checkout everything to get access to the tags
-          repository: 'join-the-flock/flock'
+          repository: '${{ github.repository_owner }}/flock'
           ref: 'master'
           token: ${{ secrets.GITHUB_TOKEN }}
 

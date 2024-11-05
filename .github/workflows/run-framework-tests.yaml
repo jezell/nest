@@ -39,7 +39,7 @@ jobs:
 
       - name: Setup Android Tools
         run: |
-          apt-get install android-tools-adb
+          sudo apt-get install android-tools-adb
 
       - name: Run Tests
         run: |

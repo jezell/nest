@@ -24,7 +24,7 @@ jobs:
         with:
           path: 'flock'
           fetch-depth: 0 # Checkout everything to get access to the tags
-          repository: '${{ github.repository_owner }}/flock'
+          repository: 'flutter/flutter'
           ref: 'master'
           token: ${{ secrets.GITHUB_TOKEN }}
 

@@ -43,7 +43,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          PATH="$PATH:`pwd`/flock/bin
+          PATH="$PATH:`pwd`/flock/bin"
           flutter update-packages
           cd flock/packages/flutter/test
           flutter test

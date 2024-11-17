@@ -1,7 +1,7 @@
 name: Label
 on:
-  - label:
-      types: [ created ]
+  label:
+    types: [ created ]
 jobs:
   apply-and-push-changes:
     name: Patch, Test, and Push

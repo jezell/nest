@@ -29,5 +29,5 @@ jobs:
         run: |
           cd flock
           git remote add destination ${{ vars.DESTINATION_REPO }}
-          git checkout -b ${{ github.base_ref || github.ref_name }}
-          git push -f destination ${{ vars.FLOCK_REF_PREFIX }}${{ github.base_ref || github.ref_name }}
+          git checkout -b flock-temp
+          git push -f destination flock-temp:${{ vars.FLOCK_REF_PREFIX }}${{ github.base_ref || github.ref_name }}

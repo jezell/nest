@@ -31,6 +31,9 @@ on:
 
 # Update these variables to fit your custom fork configuration.
 env:
+  # GitHub path to official Flutter repository.
+  FLUTTER_REPO: "flutter/flutter"
+
   # The GitHub location of your Flutter fork.
   FLOCK_REPO: "join-the-flock/flock"
 
@@ -69,15 +72,28 @@ jobs:
             echo "has_patch_changes=true" >> $GITHUB_ENV
           fi
 
-      - name: Checkout Flock
+      - name: Checkout Flutter
         if: env.has_patch_changes == 'true'
         uses: actions/checkout@v4
         with:
           path: 'nest/flock'
           fetch-depth: 0 # Checkout everything to get access to the tags
-          repository: ${{ env.FLOCK_REPO }}
+          repository: ${{ env.FLUTTER_REPO }}
           ref: ${{ env.FLUTTER_BRANCH }}
           token: ${{ env.GITHUB_PAT }}
+      
+      - name: Change Flutter remote origin to Flock
+        if: env.has_patch_changes == 'true'
+        working-directory: nest/flock
+        run: |
+          echo "Changing git origin from Flutter to Flock"
+          initial_remote=$(git remote get-url origin)
+          echo "Initial remote is: $initial_remote"
+
+          git remote set-url origin https://github.com/${{ env.FLOCK_REPO }}
+
+          new_remote=$(git remote get-url origin)
+          echo "New remote is: $new_remote"
 
       - name: Create branch for Flock PR
         if: env.has_patch_changes == 'true'
@@ -94,12 +110,29 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Apply Nest patches to Flock
+      - name: Apply Nest patches to Flutter
         if: env.has_patch_changes == 'true'
         run: |
           echo "Apply patches..."
           cd nest
+
+          cd flock
+          echo "History before applying patches:"
+          git log -n 5 --pretty=format:"%h - %an: %s"
+          echo "Git Status:"
+          git status
+          cd ..
+
+          echo ""
+          echo "Applying patches..."
           tools/git-import-patches patches
+          echo ""
+
+          cd flock
+          echo "History after applying patches:"
+          git log -n 5 --pretty=format:"%h - %an: %s"
+          echo "Git Status:"
+          git status
 
       - name: Push Flock changes to Flock repo for PR
         if: env.has_patch_changes == 'true'
@@ -141,10 +174,25 @@ jobs:
             echo "Flock PR doesn't exist yet. Creating it."
 
             # Save the PR description to a file so that we can insert newlines.
-            echo -e "${{ github.event.pull_request.body }}\n\n---\n\nThis Flock PR is derived from the patch in the following Nest PR: \n${{ github.event.pull_request.url }}" > pr_description.txt
+            echo "Generating PR description and saving to file..."
+            echo "--"
+            printf " - original pull request URL: ${{ github.event.pull_request.url }}\n"
+            echo "--"
+            printf " - original pull request body: ${{ github.event.pull_request.body }}\n"
+            echo "--"
+
+            printf "${{ github.event.pull_request.body }}\n\n---\n\nThis Flock PR is derived from the patch in the following Nest PR: \n${{ github.event.pull_request.url }}" > pr_description.txt
+
+            cat pr_description.txt
+            echo ""
 
             # Create the PR.
             echo "Creating a PR..."
+            echo " - title: ${{ github.event.pull_request.title }}"
+            echo " - head: ${{ github.event.pull_request.head.ref }}"
+            echo " - base: ${{ env.FLUTTER_BRANCH }}"
+            echo ""
+            
             gh pr create \
               --title "${{ github.event.pull_request.title }}" \
               --body-file "pr_description.txt" \
